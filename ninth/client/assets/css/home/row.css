@@ -1,0 +1,34 @@
+td{
+    border-style: double;
+    text-align: center;
+}
+
+.odd{
+
+}
+
+.even{
+    background: #f3e5f5;
+}
+
+.btn{
+    cursor: pointer;
+}
+
+.edit{
+    border-radius: 10;
+    background: #42a5f5;
+    font-weight: 600;
+}
+
+.delete{
+    border-radius: 10;
+    background: #f50057;
+    font-weight: 600;
+}
+
+.edit{
+    border-radius: 10;
+    background: #ff7900;
+    font-weight: 600;
+}

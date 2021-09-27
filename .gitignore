@@ -1,0 +1,7 @@
+node_modules/
+ninth/dist/
+ninth/node_modules/
+package-lock.json
+release-builds
+dist
+ninth/*.xlsx

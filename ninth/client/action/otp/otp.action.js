@@ -1,0 +1,6 @@
+export const OTP_SUCCESS = "OTP_SUCCESS";
+export const OPEN_HOME_SCREEN = "OPEN_HOME_SCREEN";
+export const OTP_CHECKING = "OTP_CHECKING";
+export const IS_OTP_VERIFYING = "IS_OTP_VERIFYING";
+export const OTP_STATUS = "OTP_STATUS";
+export const OTP_TIMEOUT = "OTP_TIMEOUT";
