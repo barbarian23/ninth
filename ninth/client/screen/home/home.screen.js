@@ -4,6 +4,7 @@ import { TR_TYPE_TIME, TR_TYPE_SETUP } from "../../constants/home/home.constant"
 import { GET_LENGHT_LIST, GET_NUMBER_INFORMATION, SEND_NUMBER_TOSERVER, START_CRAWL_DATA } from "../../action/home/home.action";
 import { readFileExcel, createFileExcel } from "../../service/excel/excel.client.service";
 import { useSelector, useDispatch } from 'react-redux';
+import { useHistory } from 'react-router-dom';
 
 export default function Home() {
     const [mTime, setMTime] = useState(0);
@@ -26,6 +27,14 @@ export default function Home() {
     //     }
     //     // khoi tao interval - duy nhat 1 lan
     //     dispatch({ type: SET_INTERVAL_PHONE });
+    // }, []);
+
+    //lấy ra param của home khi chọn trang nào?
+    // let location = useLocation();
+    // let [name, setName] = useState("no name");
+    // useEffect(() => {
+    //     const queryParam = new URLSearchParams(location.search);
+    //     setName(queryParam.get("name"));
     // }, []);
 
     useEffect(() => {
@@ -143,7 +152,7 @@ export default function Home() {
                                 <text>Đang tra cứu tệp <span style={{ color: "green" }}>{nameFile}</span></text>
                             </div>
                             <div className="tracking-index-number-upper">
-                                <text style={{textAlign:"center"}}>Đang tra cứu tới số thứ {phoneNumberChecking.index} / {sumIndex}</text>
+                                <text style={{ textAlign: "center" }}>Đang tra cứu tới số thứ {phoneNumberChecking.index} / {sumIndex}</text>
                             </div>
                             <div className="tracking-index-number-bellow">
                                 <text>Hoàn thành {percentProcess(phoneNumberChecking.index, sumIndex)}%</text>
