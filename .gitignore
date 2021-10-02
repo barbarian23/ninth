@@ -1,0 +1,7 @@
+node_modules/
+fifth/dist/
+fifth/node_modules/
+package-lock.json
+release-builds
+dist
+fifth/*.xlsx

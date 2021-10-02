@@ -1,0 +1,92 @@
+input :hover{
+    background: bisque;
+}
+
+/* Login */
+.crawl-otp {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    width: 90%;
+    height: 90%;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.crawl-otp-input {
+    display: flex;
+    width: 90%;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.crawl-otp-input-upper {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+}
+
+.crawl-otp span {
+    color: #318a1ae3;
+}
+
+.crawl-otp-input-below {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin: 5px auto 10px auto;
+}
+
+.crawl-otp input {
+    width: 100%;
+    height: 45px;
+    border-radius: 4px;
+    border: 1px solid #ba68c8;
+    padding-left: 10px;
+    -webkit-box-sizing: border-box;
+    /* Safari/Chrome, other WebKit */
+    -moz-box-sizing: border-box;
+    /* Firefox, other Gecko */
+    box-sizing: border-box;
+    color: black;
+}
+
+.crawl-otp ::placeholder {
+    color: rgb(107, 133, 113);
+}
+
+.crawl-otp-button-submit {
+    display: flex;
+    width: 30%;
+    height: 50px;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border-radius: 4px;
+    background: #ba68c8;
+}
+
+.crawl-otp-button-submit span {
+    color: #fafafa;
+}
+
+.crawl-otp-button-submit:active {
+    transform: scale(1.2);
+}
+
+#crawl-otp{
+    display: flex;
+}
+
+.crawl-otp h3{
+    color: red;
+    animation: textshow 5s linear infinite alternate;
+}

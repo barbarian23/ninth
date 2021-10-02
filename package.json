@@ -1,0 +1,25 @@
+{
+  "name": "cas_tra_cuu_thong_tin",
+  "description": "CAS VNPT TRA CỨU THÔNG TIN",
+  "version": "0.1.0",
+  "main": "main.js",
+  "authors": [
+    "fat baby shark"
+  ],
+  "license": "",
+  "private": true,
+  "scripts": {
+    "start": ".\\node_modules\\node\\bin\\node.exe start-electron.js",
+    "dist": "electron-packager . --overwrite --platform=win32 --arch=x64 --prune=true --out=release-builds --version-string.CompanyName=CE --version-string.FileDescription=CE --version-string.ProductName=\"CAS VNPT TRA CUU TINH THANH\" --asar"
+  },
+  "dependencies": {
+    "electron": "^13.1.1",
+    "electron-packager": "^15.2.0",
+    "jquery": "^3.5.1",
+    "lodash": "^4.17.20",
+    "node": "^15.4.0",
+    "request": "^2.88.2",
+    "strip": "^3.0.0"
+  },
+  "devDependencies": {}
+}
