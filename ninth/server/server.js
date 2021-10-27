@@ -41,6 +41,6 @@ const server = http.createServer(app);
 // });
 
 
-workingController(server);
+workingController(server,app);
 
 server.listen(app.get('port'), () => console.log("######## app running on port " + PORT + " ########"));

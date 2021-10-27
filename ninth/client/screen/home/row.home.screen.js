@@ -2,9 +2,9 @@ import React, { useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { DELETE_PHONE, EDIT_PHONE, NOTI_PHONE, SET_INTERVAL_PHONE } from "../../action/home/home.action";
 import '../../assets/css/home/row.css';
-// import mp3 from '../../assets/sound/noti.mp3';
-import { TH_EDIT, TH_DELETE, TH_DONE } from "../../constants/home/home.constant";
-
+import mp3 from '../../assets/sound/noti.mp3';
+import { TH_EDIT, TH_DELETE, TH_DONE, URL_BOT_TELEGRAM, ID_CHANNEL_TELEGRAM } from "../../constants/home/home.constant";
+import { requestPost } from "../../service/request/request.js";
 
 export default function Row(props) {
     const { index, data } = props;
@@ -16,35 +16,52 @@ export default function Row(props) {
     //giá trị hiện tại của info
     let [currentInfo, setCurrentInfo] = useState(false);
 
+    let sendTelegram = (data) => {
+        requestPost(URL_BOT_TELEGRAM,
+            {
+                chat_id: ID_CHANNEL_TELEGRAM,
+                text: "Tài khoản chính của thuê bao " + data.phone + " là " + data.info + " (lớn hơn " + data.money + ")",
+            }, (res) => {
+                console.log("send telegram successfully ", "Tài khoản chính của thuê bao " + data.phone + " là " + data.info + " (lớn hơn " + data.money + ")");
+            },
+            (err) => {
+                console.log("send telegram failure ", err);
+            });
+    }
+
     //check giá trị khi info thay đổi
     useEffect(() => {
         //nếu là -1 , có lẽ lỗi mạng cmnr
-
-        if(Number.parseFloat(info) == -1){
+        //console.log("phone", phone, "new info", info);
+        if (Number.parseFloat(info) == -1) {
             //không có giá trị trước của prevInffo - lần đậ chạy àm lỗi mạng
-            
-            if(prevInfo == null || prevInfo == ""){
+
+            if (prevInfo == null || prevInfo == "") {
                 setCurrentInfo("Bị lỗi số");
-            } 
+            }
             //thì set lại gái trị cuối cùng vừa nhận được
             else {
                 setCurrentInfo(prevInfo);
             }
         }
+        if (info == null) {
+            setCurrentInfo("Bị lỗi số");
+        }
         //nếu không phải -1 , không phải lỗi
-        else{
+        else {
             setCurrentInfo(info);
-            if(Number.parseFloat(info) >= Number.parseFloat(money)){
+            if (Number.parseFloat(info) >= Number.parseFloat(money)) {
                 dispatch({
                     type: NOTI_PHONE,
                     data: {
-                        phone:phone,
+                        phone: phone,
                         money: money,
                         info: info,
                     }
-                })
+                });
+                sendTelegram(data);
             }
-            
+
         }
     }, [info]);
 
@@ -70,7 +87,7 @@ export default function Row(props) {
         }
     }, [searchPhone]);
 
-    // const [audio] = useState(new Audio(mp3));
+    const [audio] = useState(new Audio(mp3));
 
     let dispatch = useDispatch();
     let dispatchToStore = (action) => {
@@ -107,14 +124,16 @@ export default function Row(props) {
     }
 
     let playSound = () => {
-        // audio.play() 
+        audio.play()
     }
 
-    useEffect(() => {
-        if (Number.parseFloat(data.info) >= Number.parseFloat(data.money)){
-            playSound();
-        }
-    }, [data.info]);
+
+    // useEffect(() => {
+    //     if (Number.parseFloat(data.info) >= Number.parseFloat(data.money)) {
+    //         // playSound();
+    //         sendTelegram(data);
+    //     }
+    // }, [data.info]);
 
     if (!isEdited) {
         return (
@@ -158,7 +177,7 @@ export default function Row(props) {
 function usePrevious(value) {
     const ref = useRef();
     useEffect(() => {
-      ref.current = value;
+        ref.current = value;
     });
     return ref.current;
-  }
+}
