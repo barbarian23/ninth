@@ -36,27 +36,13 @@ const socket = new socketClient(MAIN_URL);
 
 // sử dụng eventChannel để gửi và nhận data qua socket haowjc seveer snet event
 const homeSocket = function (data) {
-    
-    //cái mới dùng server sent event
-    // return eventChannel(emitter => {
-
-    //     let sseTest = sseClient(MAIN_URL + SOCKET_INTERVAL_EACH_PHONE_URL + "?phone=" + data.data.phone + "&money=" + data.data.money);
-    //     sseTest.connect((data) => {
-    //             data = data ? JSON.parse(data.data) : '';
-    //             emitter(data || '');
-    //     });
-
-    //     return () => {
-    //         //unscrible
-    //     };
-
-    // });
-
-    // console.log("homeSocket", data);
-    //cái cũ dùng socket
     return eventChannel(emitter => {
         //gửi
-        socket.send(SOCKET_WORKING_SINGLE_NUMBER, { phone: data.data.phone, money: data.data.money });
+        socket.send(SOCKET_WORKING_SINGLE_NUMBER, { 
+            phone: data.data.phone, 
+            money: data.data.money, 
+            urlID: data.data.urlID 
+        });
 
         //nhận
         socket.receive(SOCKET_WORKING_ADDED_NUMBER, function (data) {
@@ -98,8 +84,6 @@ const addNumberSaga = function* (action) {
 ///////////////////////////////////////
 //get list phone socket
 const getListPhoneSocket = function (data) {
-    // console.log("homeSocket", data);
-   
     return eventChannel(emitter => {
         //gửi
         socket.send(SOCKET_GET_LIST_PHONE, {});

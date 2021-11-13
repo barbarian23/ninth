@@ -9,7 +9,7 @@ export async function requestGet(url, param, onSuccess, onFailed) {
 }
 
 export async function requestPost(url, param, onSuccess, onFailed) {
-    axios.async(url, {
+    axios.post(url, {
         params: param
     })
         .then(onSuccess)

@@ -127,14 +127,6 @@ export default function Row(props) {
         audio.play()
     }
 
-
-    // useEffect(() => {
-    //     if (Number.parseFloat(data.info) >= Number.parseFloat(data.money)) {
-    //         // playSound();
-    //         sendTelegram(data);
-    //     }
-    // }, [data.info]);
-
     if (!isEdited) {
         return (
             <tr ref={inputSearch} style={{ backgroundColor: (Number.parseFloat(data.info) >= Number.parseFloat(data.money)) ? "#00FF00" : "#FFFFFF" }} key={index}>
@@ -142,7 +134,6 @@ export default function Row(props) {
                 <td ref={makeColor} >{phone}</td>
                 <td>{money}</td>
                 <td>{currentInfo}
-                    {/* {playSound(Number.parseFloat(data.info))} */}
                 </td>
                 <td>
                     <div className="btn edit" onClick={editPhone}>{TH_EDIT}</div>

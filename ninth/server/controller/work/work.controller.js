@@ -2,7 +2,6 @@ import socketServer from "../../service/socket/socket.server.service";
 import csvService from "../../service/csv/csv.server.service";
 import {
     SOCKET_LOGIN,
-    SOCKET_LOGIN_STATUS,
     SOCKET_GET_LIST_PHONE,
     SOCKET_LIST_PHONE,
     SOCKET_WORKING_SINGLE_NUMBER,
@@ -20,36 +19,24 @@ import {
     SOCKET_INTERVAL_EACH_PHONE_URL
 } from "../../../common/constants/common.constants";
 import doLogin from "../work/login.controller";
-
-import sseServer from "../../service/sse/sse.server.service";
 import receive from "../reactjs/render.controller"; // render client
 
-import { HOME_URL, WAIT_TIME, MAXIMUM_INTERVAL } from "../../constants/work/work.constants";
-import { getListTdTag, getListMiddleNumber, getListNumberMoney, verifyNumberPhone } from "../../service/util/utils.server";
+import { WAIT_TIME, URL_1, URL_2 } from "../../constants/work/work.constants";
+import { verifyNumberPhone } from "../../service/util/utils.server";
 
 const puppeteer = require('puppeteer');
 //C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe
 //C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe
-let exPath = "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe";
+let exPath = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
 var driver;
-
-//biến đếm số lần chạy interval, nếu số lần chạy interval quá lướn, có thể khiến trình duyệt bị điw
-
-var countInterval = 0, clearIntervalMax = null;
+var urlID = 1;
 
 var socket = null;
 
 // const seleniumInsstance = new seleniumCrawl();
 const csvInstance = new csvService();
 
-let arrayNumber = [
-    // {
-    //     number:"090090090",
-    //     money:10000,
-    //     interval:null,
-    //     change:false,
-    // }
-];
+let arrayNumber = [];
 try {
     arrayNumber = csvInstance.readFile();
 } catch (e) {
@@ -130,85 +117,60 @@ const router = async function (req, res) {
     }
 };
 
-//lấy ra đoạn html bằng 1 đoạn javascript
-const watchPhone = async (phone) => {
+const getNumberInfo = async (phone, urlID, driver) => {
     return new Promise(async (res, rej) => {
         try {
-            //let html = await driver.evaluate("(async function (){return await getPhone("+phone+")}())");
+            // need to update to crawl data
+            //goto url
+            if (urlID === 1) {
+                await driver.goto(URL_1);
+                await driver.waitForFunction('document.readyState === "complete"');
 
-            let html = await driver.evaluate("getPhone(" + phone + ")");
-            res(html);
-        } catch (e) {
-            console.log("error watchPhone", phone, e);
-            rej(e);
-        }
-    });
-}
+                // input phone
+                let selector = "#ContentPlaceHolder_Main_ContentPlaceHolder_Text_txtThueBao";
+                await driver.$eval(selector, (el, value) => el.value = value, phone);
 
-//lấy ra các thẻ table từ đoạn html
-const getListTrInTable = async (htmlContent) => {
-    return new Promise(async (res, rej) => {
-        let listTrTag = await getListTdTag(htmlContent);
-        //await socket.send(SOCKET_LOG, { message: "list tr", data: listTrTag });
-        res(listTrTag);
-    });
-}
+                // select to button search & click button
+                selector = "#ContentPlaceHolder_Main_ContentPlaceHolder_Text_btTraCuu"; 
+                await Promise.all([driver.click(selector)]);
 
-//lấy ra number có thể kèm theo các ký tự đặc biệt như ><
-const getMiddleNumber = (listTr) => {
-    return new Promise(async (res, rej) => {
-        let numberWithSpecial = await getListMiddleNumber(listTr);
-        //await socket.send(SOCKET_LOG, { message: "number uiwth spcial tr", data: numberWithSpecial });
-        res(numberWithSpecial);
-    });
-}
+                await timer(500);
+                await driver.waitForSelector('#showLoading', {visible: false})
 
-//lấy ra number từ 1 đoạn string có chứa số kèm theo 1 số ký tư đặc gbiejet như b><
-const getNumberMoney = (numberSpecial) => {
-    return new Promise(async (res, rej) => {
-        let number = await getListNumberMoney(numberSpecial);
-        //await socket.send(SOCKET_LOG, { message: "number", data: number });
-        res(number);
-    });
-}
+                let tkChinh = await driver.$$eval("#ContentPlaceHolder_Main_ContentPlaceHolder_Text_txtTKC", spanData => spanData.map((span) => {
+                    return JSON.stringify(span.innerHTML);
+                }));
+                res(tkChinh)
+            } else {
+                await driver.goto(URL_2);
+                await driver.waitForFunction('document.readyState === "complete"');
 
-const getNumberInfo = async (phone, info) => {
-    //let rd = Math.floor(Math.random() * 10);
-    //console.log("number random", rd);
-    return new Promise(async (res, rej) => {
-        try {
-            //lấy ra đoạn html
-            let htmlContent = await watchPhone(phone);
-            //console.log("htmlContent", htmlContent.length);
-            //lấy ra các tr
-            let listTr = await getListTrInTable(htmlContent);
+                // input phone
+                let selector = "#txtThueBao";
+                await driver.$eval(selector, (el, value) => el.value = value, phone);
 
-            // console.log("listTr", listTr);
-            // if (listTr) {
-            //     console.log("listTr", listTr[0], listTr[1], listTr[2], listTr[3], listTr[4], listTr[5]);
-            // }
-            //lấy ra số điện thoại, có thể bao gồm với các ngoặc ><. dùng tr thứ 5
-            // ["<tr>15000</tr>"]
-            let numberSpecial = listTr && listTr[5] ? await getMiddleNumber(listTr[5]) : [info];
-            //["> 15000 <"]
-            //console.log("numberSpecial", numberSpecial[0]);
-            //lấy ra number
-            let number = await getNumberMoney(numberSpecial[0]); // ["15000"] : ["0"]
-            console.log("phone", phone, "money", number[0]);
-            //await socket.send(SOCKET_SETINTERVALED_PHONE, { info: arrayNumber[idx].info, index: idx, phone: data.phone });
-            res(number[0]);
+                // select to button search & click button
+                selector = "#btnSearch"; 
+                await Promise.all([driver.click(selector)]);
+
+                await timer(500);
+                await driver.waitForSelector('#showLoading', {visible: false})
+
+                let tkChinh = await driver.$$eval("#txtTKC", spanData => spanData.map((span) => {
+                    return JSON.stringify(span.innerHTML);
+                }));
+                res(tkChinh)
+            }
+
+            // console.log("phone", phone, "money", number[0]);
+            // res(number[0]);
+
 
         } catch (e) {
             console.log("getNumberInfo error ", phone, e);
             rej(e);
         }
     });
-}
-
-let random = () => {
-    let rd = Math.floor(Math.random() * 10);
-    console.log("number random", rd);
-    return rd;
 }
 
 const inJectGetPhone = async () => {
@@ -275,7 +237,6 @@ const login = function (data) {
 }
 
 const getListPhone = async function (data) {
-    //console.log("getListPhone", data);
     socket.send(SOCKET_LIST_PHONE, arrayNumber);
 }
 
@@ -300,7 +261,6 @@ const duplicateNumber = num => {
 }
 
 //===========================================================================================================================================
-//cái cũ dùng socket
 
 const addNumber = async function (data) {
 
@@ -328,7 +288,7 @@ const addNumber = async function (data) {
 
         setTimeout(async () => {
             try {
-                data.info = await getNumberInfo(data.phone, data.info);
+                data.info = await getNumberInfo(data.phone, data.urlID, driver);
                 console.log("server found that phone", data.phone, "with money", data.info, "index", tempIndex);
                 await socket.send(SOCKET_SETINTERVALED_PHONE, { info: data.info, index: tempIndex, phone: data.phone });
             } catch (e) {
@@ -341,7 +301,7 @@ const addNumber = async function (data) {
             let idx = findIndex(data.phone);
             countInterval++;
             try {
-                arrayNumber[idx].info = await getNumberInfo(arrayNumber[idx].phone, arrayNumber[idx].info);
+                arrayNumber[idx].info = await getNumberInfo(arrayNumber[idx].phone, data.urlID, driver);
                 console.log("server found that phone", arrayNumber[idx].phone, "with money", arrayNumber[idx].info, "index", idx);
                 await socket.send(SOCKET_SETINTERVALED_PHONE, { info: arrayNumber[idx].info, index: idx, phone: data.phone });
             } catch (e) {
@@ -399,37 +359,12 @@ const prepareInterval = async (data) => {
 
     //await removeIntervalForLightenWeb();
 
-    await setIntervalPhone();
+    await setIntervalPhone(data);
 
 }
 
-const removeIntervalForLightenWeb = async () => {
-    console.log("removeIntervalForLightenWeb");
-    //cứ 2 phút 1 lần sẽ xem có bao nhiêu interval  đang chạy, nếu nhiều quá, hơn 300 thì refresh lại trangm rồi injejct hàm getPhone lại
-    clearIntervalMax = setInterval(async () => {
-        console.log("countInterval", countInterval);
-        if (countInterval > MAXIMUM_INTERVAL) {
-
-            console.log("reset page");
-
-            // tải lại trang
-            await driver.goto(HOME_URL);
-
-            // wait to complete
-            await driver.waitForFunction('document.readyState === "complete"');
-
-            countInterval = 0;
-
-            await removeAllInterval();
-
-            await setIntervalPhone();
-        }
-    }, WAIT_TIME * 2 + 15000); // sẽ là 2 phút 15 giây
-}
-
-//cái cũ dùng socket
 //===================================================================================================================================
-const setIntervalPhone = async function () {
+const setIntervalPhone = async function (data) {
     try {
         //inject hàm getPhone
         await inJectGetPhone();
@@ -444,7 +379,7 @@ const setIntervalPhone = async function () {
             let intervalTime = calculatorTime(index);
             setTimeout(async () => {
                 try {
-                    item.info = await getNumberInfo(item.phone, item.info);
+                    item.info = await getNumberInfo(item.phone, data.urlID, driver);
                     console.log("server found that phone", item.phone, "with money", item.info, "index", index);
                     await socket.send(SOCKET_SETINTERVALED_PHONE, { info: item.info, index: index, phone: item.phone });
                 } catch (e) {
@@ -456,7 +391,7 @@ const setIntervalPhone = async function () {
                 countInterval++;
                 let idx = findIndex(item.phone);
                 try {
-                    item.info = await getNumberInfo(item.phone, item.info);
+                    item.info = await getNumberInfo(item.phone, data.urlID, driver);
                     console.log("server found that phone", item.phone, "with money", item.info, "index", index);
                     await socket.send(SOCKET_SETINTERVALED_PHONE, { info: item.info, index: idx, phone: item.phone });
                 } catch (e) {
@@ -467,20 +402,6 @@ const setIntervalPhone = async function () {
     } catch (e) {
         console.log("setIntervalPhone", e);
         await socket.send(SOCKET_LOG, { message: "loi " + e });
-    }
-}
-
-const removeAllInterval = async function (data) {
-    try {
-
-        arrayNumber.forEach(async (item, index) => {
-            if (item.interval) {
-                clearInterval(item.interval);
-            }
-
-        });
-    } catch (e) {
-        console.log("removeAllInterval", e);
     }
 }
 

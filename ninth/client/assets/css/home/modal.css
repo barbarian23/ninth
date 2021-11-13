@@ -1,0 +1,19 @@
+.modal-header{
+    min-height: 30px;
+}
+
+.modal-header h4{
+    margin: 0px;
+    font-size: 25px;
+}
+
+.modal-body{
+    min-width: 400px;
+    min-height: 100px;
+
+}
+
+.modal-body p{
+    margin: 10px 0px;
+    font-size: 20px;
+}

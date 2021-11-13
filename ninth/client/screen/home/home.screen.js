@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
+import Modal from 'react-modal';
 import '../../assets/css/home/home.css';
+import '../../assets/css/home/modal.css';
 import { TH_STT, TH_PHONE, TH_MONEY, TH_INFO, TH_TRACK, TR_TYPE_NUMBER, TR_TYPE_MONEY, TR_TYPE_ADD, sampleData } from "../../constants/home/home.constant";
 import { ADD_PHONE, GET_LIST_PHONE, SEARCH_PHONE, SET_INTERVAL_PHONE } from "../../action/home/home.action";
 import { readFileExcel, createFileExcel } from "../../service/excel/excel.client.service";
@@ -12,6 +14,52 @@ export default function Home() {
     const [phone, setPhone] = useState("");
     const [money, setMoney] = useState(0);
     const [warningPhone, setWarningPhone] = useState("");
+
+    //#region modal
+    const customStyles = {
+        content: {
+            top: '30%',
+            left: '50%',
+            right: 'auto',
+            bottom: 'auto',
+            marginRight: '-50%',
+            transform: 'translate(-50%, -50%)',
+        },
+    };
+    const url_1 = 'http://gqknccos.vnpt.vn/Views/TTKH/ThongTinKhachHang.aspx';
+    const url_2 = 'http://crosssellccos.vnpt.vn/Views/KhachHang/ThongTinKhachHang.aspx';
+    const [modalIsOpen, setIsOpen] = React.useState(true);
+    const [selectedURL, setSelectedURL] = React.useState(1);
+    const [time, setTime] = React.useState(8);
+
+    function openModal() {
+        setIsOpen(true);
+    }
+
+    function afterOpenModal() {
+        // references are now sync'd and can be accessed.
+        // subtitle.style.color = '#f00';
+    }
+
+    function closeModal() {
+        setIsOpen(false);
+    }
+
+    function selectURL(event) {
+        console.log(event.target.value);
+        setSelectedURL(event.target.value);
+    }
+
+    function changeTime(event){
+        if(event.target.value > 8){
+            setTime(event.target.value);
+        }else{
+            setTime(8);
+        }
+    }
+
+
+    //#endregion
 
     const dispatch = useDispatch();
 
@@ -37,7 +85,7 @@ export default function Home() {
                 if (index > 0) {
                     console.log("data in file excel", item);
                     // useDispatch({ type: ADD_PHONE, value: item });
-                    dispatch({ type: ADD_PHONE, data: { phone: item[0], money: item[1] } });
+                    dispatch({ type: ADD_PHONE, data: { phone: item[0], money: item[1], urlID: selectedURL } });
                 }
             });
         });
@@ -87,7 +135,7 @@ export default function Home() {
     }
 
     let addNew = () => {
-        dispatch({ type: ADD_PHONE, data: { phone: phone, money: money } });
+        dispatch({ type: ADD_PHONE, data: { phone: phone, money: money, urlID: selectedURL } });
     }
 
     return (
@@ -157,12 +205,12 @@ export default function Home() {
                         <div className="div-noti-phone-parent">
                             <span id="span-noti-phone">Thay đổi mới nhất</span>
                             <div className="div-noti-phone">{
-                               notiPhone ? notiPhone.map((item, index) => {
+                                notiPhone ? notiPhone.map((item, index) => {
                                     //console.log("thay doi moi nhat",index, item);
-                                    return <text>Tài khoản chính của thuê bao <span className="noti-item-phone">{item.phone}</span> là <span className="noti-item-">{item.info}</span> (lớn hơn {item.money})</text>
+                                    return <p key={index}>Tài khoản chính của thuê bao <span className="noti-item-phone">{item.phone}</span> là <span className="noti-item-">{item.info}</span> (lớn hơn {item.money})</p>
                                 })
-                                :
-                                null
+                                    :
+                                    null
                             }
                             </div>
                         </div>
@@ -170,13 +218,51 @@ export default function Home() {
                         null
                 }
 
-                
+
                 <div className="div-progress-bar" id="div_progress_bar">
                     <div id="div_grey"></div>
                 </div>
                 <h4 id="success_text"></h4>
                 <h4 id="error_crawl"></h4>
             </div>
+            <Modal
+                isOpen={modalIsOpen}
+                onAfterOpen={afterOpenModal}
+                onRequestClose={closeModal}
+                style={customStyles}
+                contentLabel="Chọn crawl URL"
+                subtitle = ""
+                ariaHideApp={false}
+            >
+                <div className="modal-header">
+                    <h4>Chọn crawl URL</h4>
+
+                </div>
+                <div className="modal-body">
+                    <form>
+                        <p>
+                            <input type="radio"
+                                value={1}
+                                checked={selectedURL == 1}
+                                onChange={selectURL}
+                            /> {url_1}
+                        </p>
+                        <p>
+                            <input type="radio"
+                                value={2}
+                                checked={selectedURL == 2}
+                                onChange={selectURL}
+                            /> {url_2}
+                        </p>
+                        <p>
+                            Thời gian: <input className="input-time" type="number" placeholder="Tối thiểu 8s" onChange={changeTime} value={time} /> giây
+                        </p>
+                        <div style={{ textAlign: 'center' }}>
+                            <input className="input-add-button" type="button" value="OK" onClick={closeModal} />
+                        </div>
+                    </form>
+                </div>
+            </Modal>
         </div>
     );
 
