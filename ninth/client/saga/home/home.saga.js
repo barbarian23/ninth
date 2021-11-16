@@ -1,35 +1,37 @@
 import { takeLatest, take, put, call } from 'redux-saga/effects';
 import { eventChannel } from 'redux-saga';
 import { homeConstant } from "../../constants/home/home.constant";
-import { 
-    GET_LIST_PHONE, 
-    GET_LIST_PHONE_SUCCESS, 
-    ADD_PHONE, 
+import {
+    GET_LIST_PHONE,
+    GET_LIST_PHONE_SUCCESS,
+    ADD_PHONE,
     ADD_PHONE_SUCCESS,
-    DELETE_PHONE,  
+    DELETE_PHONE,
     DELETE_PHONE_SUCCESS,
     EDIT_PHONE,
     EDIT_PHONE_SUCCESS,
     SET_INTERVAL_PHONE,
     SET_INTERVAL_PHONE_SUCCESS,
     ADD_PHONE_FAIL,
+    SET_WAIT_TIME
 } from "../../action/home/home.action";
 import socketClient from "../../service/socket/socket.client.service";
-import { 
-    SOCKET_WORKING_SINGLE_NUMBER, 
+import {
+    SOCKET_WORKING_SINGLE_NUMBER,
     SOCKET_WORKING_ADDED_NUMBER,
-    SOCKET_GET_LIST_PHONE, 
+    SOCKET_GET_LIST_PHONE,
     SOCKET_LIST_PHONE,
     SOCKET_WORKING_DELETE_PHONE,
     MAIN_URL,
-    SOCKET_WORKING_DELETED_PHONE, 
+    SOCKET_WORKING_DELETED_PHONE,
     SOCKET_WORKING_EDIT_PHONE,
     SOCKET_WORKING_EDITED_PHONE,
     SOCKET_SETINTERVAL_PHONE,
     SOCKET_SETINTERVALED_PHONE,
     SOCKET_LOG,
     SOCKET_INTERVAL_ALL_PHONE_URL,
-    SOCKET_INTERVAL_EACH_PHONE_URL
+    SOCKET_INTERVAL_EACH_PHONE_URL,
+    SOCKET_SET_WAIT_TIME
 } from "../../../common/constants/common.constants";
 import sseClient from "../../service/sse/sse.client.service";
 const socket = new socketClient(MAIN_URL);
@@ -38,10 +40,10 @@ const socket = new socketClient(MAIN_URL);
 const homeSocket = function (data) {
     return eventChannel(emitter => {
         //gửi
-        socket.send(SOCKET_WORKING_SINGLE_NUMBER, { 
-            phone: data.data.phone, 
-            money: data.data.money, 
-            urlID: data.data.urlID 
+        socket.send(SOCKET_WORKING_SINGLE_NUMBER, {
+            phone: data.data.phone,
+            money: data.data.money,
+            urlID: data.data.urlID
         });
 
         //nhận
@@ -74,7 +76,7 @@ const addNumberSaga = function* (action) {
             });
         } else {
             console.log("responce add fail ", responce.status);
-            yield put ({
+            yield put({
                 type: ADD_PHONE_FAIL,
                 value: responce.status
             });
@@ -120,11 +122,11 @@ const getListPhoneSaga = function* (action) {
 }
 ///////////////////////////////////////
 // 
-const deletePhoneSocket = function(data){
-     console.log("delete phone socket", data.data);
+const deletePhoneSocket = function (data) {
+    console.log("delete phone socket", data.data);
     return eventChannel(emitter => {
-        socket.send(SOCKET_WORKING_DELETE_PHONE,{index: data.data.index, phone: data.data.phone, money: data.data.money, info: data.data.info});
-        socket.receive(SOCKET_WORKING_DELETED_PHONE, function(data){
+        socket.send(SOCKET_WORKING_DELETE_PHONE, { index: data.data.index, phone: data.data.phone, money: data.data.money, info: data.data.info });
+        socket.receive(SOCKET_WORKING_DELETED_PHONE, function (data) {
             // console.log("delete home.saga from server", data);
             emitter(data || '');
         });
@@ -134,14 +136,14 @@ const deletePhoneSocket = function(data){
     });
 }
 // Nhận kết quả từ socket
-const deletePhone = function* (action){
+const deletePhone = function* (action) {
     //lay vee fkeest quar cuar event channel redux
     let result = yield call(deletePhoneSocket, action);
 
     // ket qua cua socket
-    while(true){
+    while (true) {
         let responce = yield take(result);
-        if(responce){
+        if (responce) {
             console.log("respone", responce);
             yield put({
                 type: DELETE_PHONE_SUCCESS,
@@ -154,42 +156,42 @@ const deletePhone = function* (action){
 
 ///////////////////////////////////////
 // 
-const editPhoneSocket = function(data){
+const editPhoneSocket = function (data) {
     console.log("edit phone socket", data.data);
-   return eventChannel(emitter => {
-       socket.send(SOCKET_WORKING_EDIT_PHONE,{index: data.data.index, phone: data.data.phone, money: data.data.money, info: data.data.info});
-       socket.receive(SOCKET_WORKING_EDITED_PHONE, function(data){
-           // console.log("delete home.saga from server", data);
-           emitter(data || '');
-       });
-       return () => {
-           // unscrible
-       };
-   });
+    return eventChannel(emitter => {
+        socket.send(SOCKET_WORKING_EDIT_PHONE, { index: data.data.index, phone: data.data.phone, money: data.data.money, info: data.data.info });
+        socket.receive(SOCKET_WORKING_EDITED_PHONE, function (data) {
+            // console.log("delete home.saga from server", data);
+            emitter(data || '');
+        });
+        return () => {
+            // unscrible
+        };
+    });
 }
 // Nhận kết quả từ socket
-const editPhone = function* (action){
-   //lay vee fkeest quar cuar event channel redux
-   let result = yield call(editPhoneSocket, action);
+const editPhone = function* (action) {
+    //lay vee fkeest quar cuar event channel redux
+    let result = yield call(editPhoneSocket, action);
 
-   // ket qua cua socket
-   while(true){
-       let responce = yield take(result);
-       if(responce){
-           console.log("respone", responce);
-           yield put({
-               type: EDIT_PHONE_SUCCESS,
-               data: responce
-           })
-       }
-   }
+    // ket qua cua socket
+    while (true) {
+        let responce = yield take(result);
+        if (responce) {
+            console.log("respone", responce);
+            yield put({
+                type: EDIT_PHONE_SUCCESS,
+                data: responce
+            })
+        }
+    }
 }
 
 ///////////////////////////////////////
 // 
-const setIntervalPhoneSocket = function(data){
+const setIntervalPhoneSocket = function (data) {
     console.log("setinterval listphone socket", data.data);
-     //cái mới dùng server sent event
+    //cái mới dùng server sent event
     //  return eventChannel(emitter => {
 
     //     let sseTest = sseClient(MAIN_URL + SOCKET_INTERVAL_ALL_PHONE_URL);
@@ -204,50 +206,75 @@ const setIntervalPhoneSocket = function(data){
 
     // });
     //cái cũ dùng socket
-   return eventChannel(emitter => {
-       socket.send(SOCKET_SETINTERVAL_PHONE,{listPhone: data.data});
-       socket.receive(SOCKET_SETINTERVALED_PHONE, function(data){
-           // console.log("delete home.saga from server", data);
-           emitter(data || '');
-       });
-       return () => {
-           // unscrible
-       };
-   });
+    return eventChannel(emitter => {
+        socket.send(SOCKET_SETINTERVAL_PHONE, { listPhone: data.data });
+        socket.receive(SOCKET_SETINTERVALED_PHONE, function (data) {
+            // console.log("delete home.saga from server", data);
+            emitter(data || '');
+        });
+        return () => {
+            // unscrible
+        };
+    });
 }
 // Nhận kết quả từ socket
-const setIntervalPhone = function* (action){
-   //lay vee fkeest quar cuar event channel redux
-   let result = yield call(setIntervalPhoneSocket, action);
+const setIntervalPhone = function* (action) {
+    //lay vee fkeest quar cuar event channel redux
+    let result = yield call(setIntervalPhoneSocket, action);
 
-   // ket qua cua socket
-   while(true){
-       let responce = yield take(result);
-       if(responce){
-           console.log("respone interval", responce);
-           yield put({
-               type: SET_INTERVAL_PHONE_SUCCESS,
-               data: {
+    // ket qua cua socket
+    while (true) {
+        let responce = yield take(result);
+        if (responce) {
+            console.log("respone interval", responce);
+            yield put({
+                type: SET_INTERVAL_PHONE_SUCCESS,
+                data: {
                     info: responce.info,
                     index: responce.index,
                     phone: responce.phone
                 }
-           })
-       }
-   }
+            })
+        }
+    }
 
 }
 
 ///////////////////////////////////////
 // 
-socket.receive(SOCKET_LOG, function(data){
+socket.receive(SOCKET_LOG, function (data) {
     console.log("server log", data);
 });
 
+//set Wait Time
+
+const setDoWaitTime = function* (data) {
+    return eventChannel(emitter => {
+        socket.send(SOCKET_SET_WAIT_TIME, { waitTime: data.waitTime });
+        
+        return () => {
+            // unscrible
+        };
+    });
+}
+
+const setWaitTime = function* () {
+
+    //lay vee fkeest quar cuar event channel redux
+    let result = yield call(setDoWaitTime, action);
+
+    // ket qua cua socket
+    while (true) {
+        
+    }
+
+}
+
 export const watchHome = function* () {
-   yield takeLatest(ADD_PHONE, addNumberSaga);
-   yield takeLatest(GET_LIST_PHONE, getListPhoneSaga);
-   yield takeLatest(DELETE_PHONE,deletePhone);
-   yield takeLatest(EDIT_PHONE, editPhone);
-   yield takeLatest(SET_INTERVAL_PHONE, setIntervalPhone);
+    yield takeLatest(ADD_PHONE, addNumberSaga);
+    yield takeLatest(GET_LIST_PHONE, getListPhoneSaga);
+    yield takeLatest(DELETE_PHONE, deletePhone);
+    yield takeLatest(EDIT_PHONE, editPhone);
+    yield takeLatest(SET_INTERVAL_PHONE, setIntervalPhone);
+    yield takeLatest(SET_WAIT_TIME, setWaitTime);
 }

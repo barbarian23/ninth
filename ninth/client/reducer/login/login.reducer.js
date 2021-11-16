@@ -1,4 +1,4 @@
-import { OPEN_OTP_SCREEN, LOGIN_ERROR, LOGGINGIN } from '../../action/login/login.action';
+import { OPEN_OTP_SCREEN, LOGIN_ERROR, LOGGINGIN, GO_TO_HOME  } from '../../action/login/login.action';
 
 const initialState = {
     logginin: false,
@@ -8,6 +8,7 @@ const initialState = {
     password: "",
     loginStatusText: "Đang đăng nhập",
     loginError: "",
+    isGoHome: false,
 };
 
 const mapKey = new Map([
@@ -25,6 +26,11 @@ export default function loginReducer(state = initialState, action) {
             return {
                 ...state,
                 isLoginSuccess: true
+            }
+        case GO_TO_HOME:
+            return {
+                ...state,
+                isGoHome: true
             }
         case LOGIN_ERROR:
             return {

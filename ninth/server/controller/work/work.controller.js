@@ -16,12 +16,13 @@ import {
     SOCKET_SETINTERVALED_PHONE,
     SOCKET_LOG,
     SOCKET_INTERVAL_ALL_PHONE_URL,
-    SOCKET_INTERVAL_EACH_PHONE_URL
+    SOCKET_INTERVAL_EACH_PHONE_URL,
+    SOCKET_SET_WAIT_TIME
 } from "../../../common/constants/common.constants";
 import doLogin from "../work/login.controller";
 import receive from "../reactjs/render.controller"; // render client
 
-import { WAIT_TIME, URL_1, URL_2 } from "../../constants/work/work.constants";
+import { URL_1, URL_2 } from "../../constants/work/work.constants";
 import { verifyNumberPhone } from "../../service/util/utils.server";
 
 const puppeteer = require('puppeteer');
@@ -31,6 +32,7 @@ let exPath = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
 var driver;
 var urlID = 1;
 
+var WAIT_TIME = 8000;
 var socket = null;
 
 // const seleniumInsstance = new seleniumCrawl();
@@ -40,7 +42,7 @@ let arrayNumber = [];
 try {
     arrayNumber = csvInstance.readFile();
 } catch (e) {
-
+    console.error("loi doc file csv", e);
 }
 
 
@@ -48,7 +50,7 @@ const preparePuppteer = function () {
     return new Promise((res, rej) => {
         puppeteer.launch({
             args: ["--no-sandbox", "--proxy-server='direct://'", '--proxy-bypass-list=*'],
-            headless: true,
+            headless: false,
             ignoreHTTPSErrors: true,
             executablePath: exPath == "" ? "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe" : exPath
         })
@@ -94,6 +96,10 @@ const workingController = async function (server, app) {
             //chuyển qua server sent event - SOCKET_SETINTERVALED_PHONE_URL
             // setinterval
             receive.on(SOCKET_SETINTERVAL_PHONE, prepareInterval);
+
+            //set timewait
+            receive.on(SOCKET_SET_WAIT_TIME, setWaitTime);
+            
         });
 
         app.all("/*", router);
@@ -113,9 +119,14 @@ const router = async function (req, res) {
         console.log("each number", req.query.phone, req.query.money);
         addNumber({ phone: req.query.phone, money: req.query.money }, res);
     } else {
+        //render ra file html
         receive(req, res);
     }
 };
+
+const setWaitTime = async (data) => {
+    WAIT_TIME = data.waitTime;
+}
 
 const getNumberInfo = async (phone, urlID, driver) => {
     return new Promise(async (res, rej) => {
@@ -140,7 +151,7 @@ const getNumberInfo = async (phone, urlID, driver) => {
                 let tkChinh = await driver.$$eval("#ContentPlaceHolder_Main_ContentPlaceHolder_Text_txtTKC", spanData => spanData.map((span) => {
                     return JSON.stringify(span.innerHTML);
                 }));
-                res(tkChinh)
+                res(tkChinh);
             } else {
                 await driver.goto(URL_2);
                 await driver.waitForFunction('document.readyState === "complete"');
@@ -159,7 +170,7 @@ const getNumberInfo = async (phone, urlID, driver) => {
                 let tkChinh = await driver.$$eval("#txtTKC", spanData => spanData.map((span) => {
                     return JSON.stringify(span.innerHTML);
                 }));
-                res(tkChinh)
+                res(tkChinh);
             }
 
             // console.log("phone", phone, "money", number[0]);
@@ -263,7 +274,6 @@ const duplicateNumber = num => {
 //===========================================================================================================================================
 
 const addNumber = async function (data) {
-
     //kiểm tra có bị trùng
     //ép kiểu về string
     data.phone = data.phone + "";
@@ -277,14 +287,14 @@ const addNumber = async function (data) {
         arrayNumber.push(data);
         //console.log("arrayNumber push",arrayNumber);
         console.log("arrayNumber length", arrayNumber.length);
-        //console.log("theem soos", arrayNumber[arrayNumber.length - 1]);
+        //console.log("them so", arrayNumber[arrayNumber.length - 1]);
         let tempIndex = arrayNumber.length - 1; // 3
         console.log("tempIndex of phone", data.phone, "is", tempIndex)
         socket.send(SOCKET_WORKING_ADDED_NUMBER, { status: 200, data: data });
         await csvInstance.writeFile(arrayNumber);
 
         //gọi lại lần đầu
-        let intertime = calculatorTime(tempIndex);
+        //let intertime = calculatorTime(tempIndex);
 
         setTimeout(async () => {
             try {
@@ -294,7 +304,7 @@ const addNumber = async function (data) {
             } catch (e) {
                 await socket.send(SOCKET_SETINTERVALED_PHONE, { info: -1, index: tempIndex, phone: data.phone });
             }
-        }, intertime - WAIT_TIME);
+        }, WAIT_TIME);
 
         arrayNumber[tempIndex].interval = setInterval(async () => { // xoa 3 >> clear interval 3
             //lúc thêm mới thì cần thận với cái arrayNumber.length này
@@ -308,7 +318,7 @@ const addNumber = async function (data) {
                 await socket.send(SOCKET_SETINTERVALED_PHONE, { info: -1, index: idx, phone: data.phone });
                 console.log("add number error", e);
             }
-        }, intertime);
+        }, WAIT_TIME);
     } else {
         socket.send(SOCKET_WORKING_ADDED_NUMBER, { status: "Số điện thoại đã tồn tại", data: null });
     }
@@ -367,7 +377,7 @@ const prepareInterval = async (data) => {
 const setIntervalPhone = async function (data) {
     try {
         //inject hàm getPhone
-        await inJectGetPhone();
+        //await inJectGetPhone();
 
         //await removeIntervalForLightenWeb();
 
@@ -385,7 +395,7 @@ const setIntervalPhone = async function (data) {
                 } catch (e) {
                     await socket.send(SOCKET_SETINTERVALED_PHONE, { info: -1, index: index, phone: item.phone });
                 }
-            }, intervalTime - WAIT_TIME);
+            }, WAIT_TIME);
 
             item.interval = setInterval(async () => {
                 countInterval++;
@@ -397,7 +407,7 @@ const setIntervalPhone = async function (data) {
                 } catch (e) {
                     await socket.send(SOCKET_SETINTERVALED_PHONE, { info: -1, index: idx, phone: item.phone });
                 }
-            }, intervalTime);
+            }, WAIT_TIME);
         });
     } catch (e) {
         console.log("setIntervalPhone", e);

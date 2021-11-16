@@ -3,7 +3,7 @@ import Modal from 'react-modal';
 import '../../assets/css/home/home.css';
 import '../../assets/css/home/modal.css';
 import { TH_STT, TH_PHONE, TH_MONEY, TH_INFO, TH_TRACK, TR_TYPE_NUMBER, TR_TYPE_MONEY, TR_TYPE_ADD, sampleData } from "../../constants/home/home.constant";
-import { ADD_PHONE, GET_LIST_PHONE, SEARCH_PHONE, SET_INTERVAL_PHONE } from "../../action/home/home.action";
+import { ADD_PHONE, GET_LIST_PHONE, SEARCH_PHONE, SET_INTERVAL_PHONE, SET_WAIT_TIME } from "../../action/home/home.action";
 import { readFileExcel, createFileExcel } from "../../service/excel/excel.client.service";
 import { useSelector, useDispatch } from 'react-redux';
 
@@ -53,8 +53,10 @@ export default function Home() {
     function changeTime(event){
         if(event.target.value > 8){
             setTime(event.target.value);
+            dispatch({ type: SET_WAIT_TIME, waitTime: event.target.value * 1000 });
         }else{
             setTime(8);
+            dispatch({ type: SET_WAIT_TIME, waitTime: 8 * 1000 });
         }
     }
 
@@ -201,7 +203,8 @@ export default function Home() {
                     <label htmlFor="avatar">Bấm vào đây để tải tệp(excel) mẫu</label>
                 </div>
                 {
-                    notiPhone && notiPhone.length > 0 ?
+                    notiPhone && notiPhone.length > 0
+                     ?
                         <div className="div-noti-phone-parent">
                             <span id="span-noti-phone">Thay đổi mới nhất</span>
                             <div className="div-noti-phone">{
@@ -235,7 +238,7 @@ export default function Home() {
                 ariaHideApp={false}
             >
                 <div className="modal-header">
-                    <h4>Chọn crawl URL</h4>
+                    <h4>Chọn đường dẫn để tra cứu</h4>
 
                 </div>
                 <div className="modal-body">

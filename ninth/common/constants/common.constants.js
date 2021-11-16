@@ -39,10 +39,13 @@ export const SOCKET_WORKING_EDITED_PHONE = "SOCKET_WORKING_EDITED_PHONE";
 
 export const SOCKET_SETINTERVAL_PHONE = "SOCKET_SETINTERVAL_PHONE";
 export const SOCKET_SETINTERVALED_PHONE = "SOCKET_SETINTERVALED_PHONE";
+export const SOCKET_SET_WAIT_TIME = "SOCKET_SET_WAIT_TIME";
 
 export const SOCKET_INTERVAL_ALL_PHONE_URL = "/intervalAllInfo";
 export const SOCKET_INTERVAL_EACH_PHONE_URL = "/intervalEachInfo";
+export const SOCKET_LOGIN_GO_HOME = "SOCKET_LOGIN_GO_HOME";
+
 //chung
-export const PORT = 3000;
+export const PORT = 9193;
 export const MAIN_URL = "http://localhost:" + PORT;
 export const ECLECTRON_LOAD = "http://localhost:" + PORT;

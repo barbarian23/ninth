@@ -21,3 +21,5 @@ export const CHANGE_MONEY = "change-money";
 
 export const SEARCH_PHONE = "SEARCH_PHONE";
 export const NOTI_PHONE = "NOTI_PHONE";
+
+export const SET_WAIT_TIME = "SET_WAIT_TIME";

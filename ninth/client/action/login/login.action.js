@@ -5,3 +5,4 @@ export const LOGIN_SUCCESS = "LOGIN_SUCCESS";
 export const OPEN_OTP_SCREEN = "OPEN_OTP_SCREEN";
 export const LOGIN_ERROR = "LOGIN_ERROR";
 export const LOGGINGIN= "LOGGINGIN";
+export const GO_TO_HOME = "GO_TO_HOME";

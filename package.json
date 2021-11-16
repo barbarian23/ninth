@@ -1,6 +1,6 @@
 {
-  "name": "cas_tra_cuu_thong_tin",
-  "description": "CAS VNPT TRA CỨU THÔNG TIN",
+  "name": "ccos_canh_bao_so",
+  "description": "CCOS Canh bao so",
   "version": "0.1.0",
   "main": "main.js",
   "authors": [
@@ -10,7 +10,7 @@
   "private": true,
   "scripts": {
     "start": ".\\node_modules\\node\\bin\\node.exe start-electron.js",
-    "dist": "electron-packager . --overwrite --platform=win32 --arch=x64 --prune=true --out=release-builds --version-string.CompanyName=CE --version-string.FileDescription=CE --version-string.ProductName=\"CAS VNPT TRA CUU TINH THANH\" --asar"
+    "dist": "electron-packager . --overwrite --platform=win32 --arch=x64 --prune=true --out=release-builds --version-string.CompanyName=CE --version-string.FileDescription=CE --version-string.ProductName=\"CCOS Canh bao so\" --asar"
   },
   "dependencies": {
     "electron": "^13.1.1",

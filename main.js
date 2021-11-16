@@ -15,7 +15,7 @@ function createWindow() {
   });
   mainWindow.loadURL(`file://${__dirname}/index.html`);
   //mở google tool dev
-  //mainWindow.webContents.openDevTools();
+  mainWindow.webContents.openDevTools();
   mainWindow.on("close", () => {
     mainWindow.webContents.send("stop-server");
   });

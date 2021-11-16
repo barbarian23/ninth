@@ -1,5 +1,5 @@
 import { LOGIN_URL, OTP_URL } from "../../constants/work/work.constants";
-import { SOCKET_SOMETHING_ERROR, SOCKET_LOGIN_INCORRECT, SOCKET_LOGIN_STATUS } from "../../../common/constants/common.constants";
+import { SOCKET_SOMETHING_ERROR, SOCKET_LOGIN_INCORRECT, SOCKET_LOGIN_STATUS, SOCKET_LOGIN_GO_HOME  } from "../../../common/constants/common.constants";
 
 const DEFAULT_DELAY = 2000;
 
@@ -24,45 +24,61 @@ async function doLogin(username, password, socket, driver, driver2) {
 
         // select to username input & send username
         // let selector = "body #ctl01 .page .main .accountInfo #MainContent_LoginUser_UserName"; // need open comment
-        let selector = "#username";
+        let selector = "#txtUsername";
         await driver.$eval(selector, (el, value) => el.value = value, username);
 
         // select to password input & send password
         // selector = "body #ctl01 .page .main .accountInfo #MainContent_LoginUser_Password";// need open comment
-        selector = "#password";
+        selector = "#txtPassword";
         await driver.$eval(selector, (el, value) => el.value = value, password);
 
         // select to button login & click button
         // selector = "body #ctl01 .page .main .accountInfo #MainContent_LoginUser_LoginButton";// need open comment
-        selector = "#fm1 > section > button";
-        await Promise.all([driver.click(selector)]);
+        selector = "#btnLogin";
+        await Promise.all([driver.click(selector), driver.waitForNavigation({ timeout: '61000' })]);
 
-        await timer(2000);
+        //await timer(2000);
 
         //lấy ra một DOM - tương đương hàm document.querySelector()
-        let dataFromLoginSummarySpan = await driver.$$eval("body #ctl01 .page .main .failureNotification", spanData => spanData.map((span) => {
+        // let dataFromLoginSummarySpan = await driver.$$eval("body #ctl01 .page .main .failureNotification", spanData => spanData.map((span) => {
+        //     return span.innerHTML;
+        // }));
+
+        // if (dataFromLoginSummarySpan.length > 0) {
+        //     socket.send(SOCKET_LOGIN_INCORRECT, { data: -1 });
+        //     return;
+        // }
+
+        //nếu là tài khoản không cần otp, sẽ tự điều hướng tới trang home
+        await driver.waitForFunction('document.readyState === "complete"');
+
+        let otpDOM = await driver.$$eval("#txtOtp", spanData => spanData.map((span) => {
             return span.innerHTML;
         }));
 
-        if (dataFromLoginSummarySpan.length > 0) {
-            socket.send(SOCKET_LOGIN_INCORRECT, { data: -1 });
-            return;
+        let homeDOM = await driver.$$eval("#mainmenu", spanData => spanData.map((span) => {
+            return span.innerHTML;
+        }));
+
+        while (otpDOM.length == 0 && homeDOM.length == 0) {
+            otpDOM = await driver.$$eval("#txtOtp", spanData => spanData.map((span) => {
+                return span.innerHTML;
+            }));
+
+            homeDOM = await driver.$$eval("#mainmenu", spanData => spanData.map((span) => {
+                return span.innerHTML;
+            }));
+            await timer(500);
         }
 
-       //focus vào trnag đang đăng nhập
-        await driver.bringToFront();
+        console.log("otpDOM", otpDOM.lenght);
+        console.log("homeDOM", homeDOM.lenght);
 
-         //đi tới trang thông tin số
-        // await driver.goto(OTP_URL);
-        // wait to complete
-
-        await driver.evaluate("setInterval(()=>{document.querySelector('#passOTP')},500)");
-
-        await driver.waitForFunction('document.querySelector("#passOTP") != null');
-
-        //await driver2.goto(OTP_URL);
-
-        socket.send(SOCKET_LOGIN_STATUS, { data: 1 });
+        if (otpDOM.length > 0) {//otp
+            socket.send(SOCKET_LOGIN_STATUS, { data: 1 });
+        } else if (homeDOM.length > 0) {//home
+            socket.send(SOCKET_LOGIN_GO_HOME, { data: 3 });
+        }
 
     } catch (e) {
         console.log("Login Error", e);

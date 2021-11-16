@@ -1,10 +1,10 @@
 import { takeLatest, take, put, call } from 'redux-saga/effects';
 import { eventChannel } from 'redux-saga';
-import { LOGIN, OPEN_OTP_SCREEN, LOGIN_ERROR, LOGGINGIN } from "../../action/login/login.action";
+import { LOGIN, OPEN_OTP_SCREEN, LOGIN_ERROR, LOGGINGIN, GO_TO_HOME  } from "../../action/login/login.action";
 import { LOGIN_STATUS_TEXT } from "../../constants/login/login.constant";
 import { loginConstant } from "../../constants/login/login.constant";
 import socketClient from "../../service/socket/socket.client.service";
-import { SOCKET_LOGIN, MAIN_URL, SOCKET_LOGIN_INCORRECT, SOCKET_LOGIN_STATUS, SOCKET_SOMETHING_ERROR } from "../../../common/constants/common.constants";
+import { SOCKET_LOGIN, MAIN_URL, SOCKET_LOGIN_INCORRECT, SOCKET_LOGIN_STATUS, SOCKET_SOMETHING_ERROR, SOCKET_LOGIN_GO_HOME } from "../../../common/constants/common.constants";
 
 // connect to server
 const socket = new socketClient(MAIN_URL);
@@ -28,6 +28,12 @@ const loginSocket = function (data) {
 
         //nhận
         socket.receive(SOCKET_SOMETHING_ERROR, data => {
+            console.log("from server", data);
+            emitter(data);
+        });
+
+        //nhận
+        socket.receive(SOCKET_LOGIN_GO_HOME, data => {
             console.log("from server", data);
             emitter(data);
         });
@@ -58,6 +64,10 @@ const login = function* (data) {
                 yield put({
                     type: LOGIN_ERROR,
                     value: "Đăng nhập lỗi, hãy thử lại"
+                })
+            }else if (responce.data == 3) {
+                yield put({
+                    type: GO_TO_HOME
                 })
             }
             yield put({ type: LOGGINGIN, value: false });
