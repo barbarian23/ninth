@@ -28,7 +28,7 @@ import { verifyNumberPhone } from "../../service/util/utils.server";
 const puppeteer = require('puppeteer');
 //C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe
 //C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe
-let exPath = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
+let exPath = "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe";
 var driver;
 var urlID = 1;
 
@@ -38,6 +38,8 @@ var socket = null;
 // const seleniumInsstance = new seleniumCrawl();
 const csvInstance = new csvService();
 
+var countInterval = 0, mainInterval = null;
+
 let arrayNumber = [];
 try {
     arrayNumber = csvInstance.readFile();
@@ -45,6 +47,9 @@ try {
     console.error("loi doc file csv", e);
 }
 
+function timer(ms) {
+    return new Promise(res => setTimeout(res, ms));
+}
 
 const preparePuppteer = function () {
     return new Promise((res, rej) => {
@@ -71,7 +76,7 @@ const workingController = async function (server, app) {
         driver = await preparePuppteer();
         //khoi tao socket 
         socket = socketServer(server);
-        console.log(server.app);
+        //console.log(server.app);
         socket.receive((receive) => {
 
             receive.on(SOCKET_LOGIN, login);
@@ -99,7 +104,7 @@ const workingController = async function (server, app) {
 
             //set timewait
             receive.on(SOCKET_SET_WAIT_TIME, setWaitTime);
-            
+
         });
 
         app.all("/*", router);
@@ -135,41 +140,156 @@ const getNumberInfo = async (phone, urlID, driver) => {
             //goto url
             if (urlID === 1) {
                 await driver.goto(URL_1);
+                //hàm readyState đối với cá trang này không có hiệu quả
                 await driver.waitForFunction('document.readyState === "complete"');
+                //cần check xem ô input có bị null không là được
 
                 // input phone
-                let selector = "#ContentPlaceHolder_Main_ContentPlaceHolder_Text_txtThueBao";
-                await driver.$eval(selector, (el, value) => el.value = value, phone);
+                // let selector = "#ContentPlaceHolder_Main_ContentPlaceHolder_Text_txtThueBao";
+                // await driver.$eval(selector, (el, value) => el.value = value, phone);
+
+                // input phone
+                await driver.evaluate('async function getE(){' +
+                    'function timer(ms){return new Promise((res)=>setTimeout(res,ms))};' +
+                    'let doM = document.querySelector("#ContentPlaceHolder_Main_ContentPlaceHolder_Text_txtThueBao");' +
+                    'let rTry = 0;' +
+                    'while(!doM && rTry == 50){' +
+                    'await timer(200);' +
+                    'doM = document.querySelector("#ContentPlaceHolder_Main_ContentPlaceHolder_Text_txtThueBao");' +
+                    'rTry++;' +
+                    '}' +
+                    'if(doM) {doM.value=' + phone + '};' +
+                    '};' +
+                    'getE();');
 
                 // select to button search & click button
-                selector = "#ContentPlaceHolder_Main_ContentPlaceHolder_Text_btTraCuu"; 
-                await Promise.all([driver.click(selector)]);
+                // selector = "#ContentPlaceHolder_Main_ContentPlaceHolder_Text_btTraCuu";
+                // await Promise.all([driver.click(selector)]);
 
-                await timer(500);
-                await driver.waitForSelector('#showLoading', {visible: false})
+                await driver.evaluate('async function getE(){' +
+                    'function timer(ms){return new Promise((res)=>setTimeout(res,ms))};' +
+                    'let doM = document.querySelector("#ContentPlaceHolder_Main_ContentPlaceHolder_Text_btTraCuu");' +
+                    'let rTry = 0;' +
+                    'while(!doM && rTry == 50){' +
+                    'await timer(200);' +
+                    'doM = document.querySelector("#ContentPlaceHolder_Main_ContentPlaceHolder_Text_btTraCuu");' +
+                    'rTry++;' +
+                    '}' +
+                    'if(doM) {doM.click()};' +
+                    '};' +
+                    'getE();');
 
-                let tkChinh = await driver.$$eval("#ContentPlaceHolder_Main_ContentPlaceHolder_Text_txtTKC", spanData => spanData.map((span) => {
-                    return JSON.stringify(span.innerHTML);
-                }));
+                await timer(100);
+
+                //await driver.waitForSelector('#showLoading', { visible: false })
+
+                let loadingIndicate = await driver.evaluate('function getE(){' +
+                    'let iframe = document.querySelector("#divLoading");' +
+                    'return iframe ? iframe.style.display : "none"' +
+                    '};' +
+                    'getE();');
+
+                while (loadingIndicate != 'none') {
+                    loadingIndicate = await driver.evaluate('function getE(){' +
+                        'let iframe = document.querySelector("#divLoading");' +
+                        'return iframe ? iframe.style.display : "none"' +
+                        '};' +
+                        'getE();');
+                }
+
+                // let tkChinh = await driver.$$eval("#ContentPlaceHolder_Main_ContentPlaceHolder_Text_txtTKC", spanData => spanData.map((span) => {
+                //     return JSON.stringify(span.value);
+                // }));
+
+                let tkChinh = await driver.evaluate('async function getE(){' +
+                    'function timer(ms){return new Promise((res)=>setTimeout(res,ms))};' +
+                    'let doM = document.querySelector("#ContentPlaceHolder_Main_ContentPlaceHolder_Text_txtTKC");' +
+                    'let rTry = 0;' +
+                    'while(!doM && rTry == 50){' +
+                    'await timer(200);' +
+                    'doM = document.querySelector("#ContentPlaceHolder_Main_ContentPlaceHolder_Text_txtTKC");' +
+                    'rTry++;' +
+                    '}' +
+                    'return doM ? doM.value : "";' +
+                    '};' +
+                    'getE();');
+
+                console.log("tkChinh", tkChinh);
+
                 res(tkChinh);
             } else {
                 await driver.goto(URL_2);
                 await driver.waitForFunction('document.readyState === "complete"');
 
                 // input phone
-                let selector = "#txtThueBao";
-                await driver.$eval(selector, (el, value) => el.value = value, phone);
+                // let selector = "#txtThueBao";
+                // await driver.$eval(selector, (el, value) => el.value = value, phone);
+
+                await driver.evaluate('async function getE(){' +
+                    'function timer(ms){return new Promise((res)=>setTimeout(res,ms))};' +
+                    'let doM = document.querySelector("#txtThueBao");' +
+                    'let rTry = 0;' +
+                    'while(!doM && rTry == 50){' +
+                    'await timer(200);' +
+                    'doM = document.querySelector("#txtThueBao");' +
+                    'rTry++;' +
+                    '}' +
+                    'if(doM) {doM.value=' + phone + '};' +
+                    '};' +
+                    'getE();');
 
                 // select to button search & click button
-                selector = "#btnSearch"; 
-                await Promise.all([driver.click(selector)]);
+                // selector = "#btnSearch";
+                // await Promise.all([driver.click(selector)]);
 
-                await timer(500);
-                await driver.waitForSelector('#showLoading', {visible: false})
+                await driver.evaluate('async function getE(){' +
+                    'function timer(ms){return new Promise((res)=>setTimeout(res,ms))};' +
+                    'let doM = document.querySelector("#btnSearch");' +
+                    'let rTry = 0;' +
+                    'while(!doM && rTry == 50){' +
+                    'await timer(200);' +
+                    'doM = document.querySelector("#btnSearch");' +
+                    'rTry++;' +
+                    '}' +
+                    'if(doM) {doM.click()};' +
+                    '};' +
+                    'getE();');
 
-                let tkChinh = await driver.$$eval("#txtTKC", spanData => spanData.map((span) => {
-                    return JSON.stringify(span.innerHTML);
-                }));
+                await timer(100);
+                //await driver.waitForSelector('#showLoading', { visible: false })
+                let loadingIndicate = await driver.evaluate('function getE(){' +
+                    'let iframe = document.querySelector("#showLoading");' +
+                    'return iframe ? iframe.style.display : "none"' +
+                    '};' +
+                    'getE();');
+
+                while (loadingIndicate != 'none') {
+                    loadingIndicate = await driver.evaluate('function getE(){' +
+                        'let iframe = document.querySelector("#showLoading");' +
+                        'return iframe ? iframe.style.display : "none"' +
+                        '};' +
+                        'getE();');
+                }
+
+                // let tkChinh = await driver.$$eval("#txtTKC", spanData => spanData.map((span) => {
+                //     return JSON.stringify(span.value);
+                // }));
+
+                let tkChinh = await driver.evaluate('async function getE(){' +
+                    'function timer(ms){return new Promise((res)=>setTimeout(res,ms))};' +
+                    'let doM = document.querySelector("#txtTKC");' +
+                    'let rTry = 0;' +
+                    'while(!doM && rTry == 50){' +
+                    'await timer(200);' +
+                    'doM = document.querySelector("#txtTKC");' +
+                    'rTry++;' +
+                    '}' +
+                    'return doM ? doM.value : "";' +
+                    '};' +
+                    'getE();');
+
+                console.log("tkChinh", tkChinh);
+
                 res(tkChinh);
             }
 
@@ -182,64 +302,6 @@ const getNumberInfo = async (phone, urlID, driver) => {
             rej(e);
         }
     });
-}
-
-const inJectGetPhone = async () => {
-    try {
-        let stringF = 'window.getPhone = async (phone) => {' +
-            'console.log(phone);' +
-            'async function action(){' +
-            'function get(){' +
-            'return new Promise((resolve,reject)=>{' +
-            'try{' +
-            'let first = document.querySelector("#ctl01 > div:nth-child(1)").getElementsByTagName("input");' +
-
-            'let form = first[0].id + "=" + first[0].value + "&" + first[1].id + "=" + first[1].value + "&" + first[2].id + "=" + encodeURIComponent(first[2].value) + "&";' +
-
-
-            'let second = document.querySelector("#ctl01 > div:nth-child(4)").getElementsByTagName("input");' +
-
-            'form = form + second[0].id + "=" + encodeURIComponent(second[0].value) + "&ctl00%24MainContent%24msisdn="+phone+"&ctl00%24MainContent%24submit_button1=T%C3%ACm+ki%E1%BA%BFm";' +
-
-            'let formData = new FormData();' +
-            'formData.append("", form);' +
-            'fetch("https://10.156.0.19/Account/Subs_info.aspx", {' +
-            'method: "POST",' +
-            'headers: {' +
-            '"Content-Type": "application/x-www-form-urlencoded",' +
-            '},' +
-            'body: formData,' +
-            '})' +
-            '.then(response => { return response.text(); })' +
-            '.then(data => {' +
-            'resolve(data);' +
-            '})' +
-            '.catch((error) => {' +
-            'console.log("fetch eror",error);' +
-            'reject(error);' +
-            '});' +
-
-            '}catch (e) {' +
-            'console.log("try catch above",e);' +
-            'reject(e);' +
-            '}' +
-            '});' +
-            '}' +
-            'try {' +
-            'let resultt = await get();' +
-            'return resultt;' +
-            '} catch (e) {' +
-            'return null;' +
-            '}' +
-            '};' +
-
-            'return await action()' +
-            '}';
-
-        await driver.evaluate(stringF);
-    } catch (e) {
-        console.log("inject getPhone error", e);
-    }
 }
 
 const login = function (data) {
@@ -296,29 +358,29 @@ const addNumber = async function (data) {
         //gọi lại lần đầu
         //let intertime = calculatorTime(tempIndex);
 
-        setTimeout(async () => {
-            try {
-                data.info = await getNumberInfo(data.phone, data.urlID, driver);
-                console.log("server found that phone", data.phone, "with money", data.info, "index", tempIndex);
-                await socket.send(SOCKET_SETINTERVALED_PHONE, { info: data.info, index: tempIndex, phone: data.phone });
-            } catch (e) {
-                await socket.send(SOCKET_SETINTERVALED_PHONE, { info: -1, index: tempIndex, phone: data.phone });
-            }
-        }, WAIT_TIME);
+        // setTimeout(async () => {
+        //     try {
+        //         data.info = await getNumberInfo(data.phone, data.urlID, driver);
+        //         console.log("server found that phone", data.phone, "with money", data.info, "index", tempIndex);
+        //         await socket.send(SOCKET_SETINTERVALED_PHONE, { info: data.info, index: tempIndex, phone: data.phone });
+        //     } catch (e) {
+        //         await socket.send(SOCKET_SETINTERVALED_PHONE, { info: -1, index: tempIndex, phone: data.phone });
+        //     }
+        // }, WAIT_TIME);
 
-        arrayNumber[tempIndex].interval = setInterval(async () => { // xoa 3 >> clear interval 3
-            //lúc thêm mới thì cần thận với cái arrayNumber.length này
-            let idx = findIndex(data.phone);
-            countInterval++;
-            try {
-                arrayNumber[idx].info = await getNumberInfo(arrayNumber[idx].phone, data.urlID, driver);
-                console.log("server found that phone", arrayNumber[idx].phone, "with money", arrayNumber[idx].info, "index", idx);
-                await socket.send(SOCKET_SETINTERVALED_PHONE, { info: arrayNumber[idx].info, index: idx, phone: data.phone });
-            } catch (e) {
-                await socket.send(SOCKET_SETINTERVALED_PHONE, { info: -1, index: idx, phone: data.phone });
-                console.log("add number error", e);
-            }
-        }, WAIT_TIME);
+        // arrayNumber[tempIndex].interval = setInterval(async () => { // xoa 3 >> clear interval 3
+        //     //lúc thêm mới thì cần thận với cái arrayNumber.length này
+        //     let idx = findIndex(data.phone);
+        //     countInterval++;
+        //     try {
+        //         arrayNumber[idx].info = await getNumberInfo(arrayNumber[idx].phone, data.urlID, driver);
+        //         console.log("server found that phone", arrayNumber[idx].phone, "with money", arrayNumber[idx].info, "index", idx);
+        //         await socket.send(SOCKET_SETINTERVALED_PHONE, { info: arrayNumber[idx].info, index: idx, phone: data.phone });
+        //     } catch (e) {
+        //         await socket.send(SOCKET_SETINTERVALED_PHONE, { info: -1, index: idx, phone: data.phone });
+        //         console.log("add number error", e);
+        //     }
+        // }, WAIT_TIME);
     } else {
         socket.send(SOCKET_WORKING_ADDED_NUMBER, { status: "Số điện thoại đã tồn tại", data: null });
     }
@@ -381,34 +443,61 @@ const setIntervalPhone = async function (data) {
 
         //await removeIntervalForLightenWeb();
 
+        WAIT_TIME = data.waitTime ? data.waitTime * 1000 : 8000;
+
         await socket.send(SOCKET_LOG, { message: "setIntervalPhone" });
-        //console.log("data in server", arrayNumber);
-        arrayNumber.forEach(async (item, index) => {
-            //goi lan dau
 
-            let intervalTime = calculatorTime(index);
-            setTimeout(async () => {
-                try {
-                    item.info = await getNumberInfo(item.phone, data.urlID, driver);
-                    console.log("server found that phone", item.phone, "with money", item.info, "index", index);
-                    await socket.send(SOCKET_SETINTERVALED_PHONE, { info: item.info, index: index, phone: item.phone });
-                } catch (e) {
-                    await socket.send(SOCKET_SETINTERVALED_PHONE, { info: -1, index: index, phone: item.phone });
-                }
-            }, WAIT_TIME);
-
-            item.interval = setInterval(async () => {
+        mainInterval = setInterval(async () => {
+            try {
+                console.log("countInterval", countInterval);
+                let item = arrayNumber[countInterval];
+                console.log("data.urlID", data.urlID);
+                console.log("countInterval", countInterval, "item", item);
+                item.info = await getNumberInfo(item.phone, data.urlID, driver);
+                console.log("server found that phone", item.phone, "with money", item.info, "index", countInterval);
+                await socket.send(SOCKET_SETINTERVALED_PHONE, { info: item.info, index: countInterval, phone: item.phone });
+            } catch (e) {
+                console.log("interval error", e);
+                await socket.send(SOCKET_SETINTERVALED_PHONE, { info: -1, index: countInterval, phone: item.phone });
+            }
+            try {
                 countInterval++;
-                let idx = findIndex(item.phone);
-                try {
-                    item.info = await getNumberInfo(item.phone, data.urlID, driver);
-                    console.log("server found that phone", item.phone, "with money", item.info, "index", index);
-                    await socket.send(SOCKET_SETINTERVALED_PHONE, { info: item.info, index: idx, phone: item.phone });
-                } catch (e) {
-                    await socket.send(SOCKET_SETINTERVALED_PHONE, { info: -1, index: idx, phone: item.phone });
+                if (countInterval == arrayNumber.length) {
+                    console.log("back to first");
+                    countInterval = 0;
                 }
-            }, WAIT_TIME);
-        });
+            } catch (e) {
+                console.log("countInterval error", e);
+                await socket.send(SOCKET_SETINTERVALED_PHONE, { info: -1, index: countInterval, phone: item.phone });
+            }
+        }, WAIT_TIME);
+
+        // arrayNumber.forEach(async (item, index) => {
+        //     //goi lan dau
+
+        //     let intervalTime = calculatorTime(index);
+        //     setTimeout(async () => {
+        //         try {
+        //             item.info = await getNumberInfo(item.phone, data.urlID, driver);
+        //             console.log("server found that phone", item.phone, "with money", item.info, "index", index);
+        //             await socket.send(SOCKET_SETINTERVALED_PHONE, { info: item.info, index: index, phone: item.phone });
+        //         } catch (e) {
+        //             await socket.send(SOCKET_SETINTERVALED_PHONE, { info: -1, index: index, phone: item.phone });
+        //         }
+        //     }, WAIT_TIME);
+
+        //     item.interval = setInterval(async () => {
+        //         countInterval++;
+        //         let idx = findIndex(item.phone);
+        //         try {
+        //             item.info = await getNumberInfo(item.phone, data.urlID, driver);
+        //             console.log("server found that phone", item.phone, "with money", item.info, "index", index);
+        //             await socket.send(SOCKET_SETINTERVALED_PHONE, { info: item.info, index: idx, phone: item.phone });
+        //         } catch (e) {
+        //             await socket.send(SOCKET_SETINTERVALED_PHONE, { info: -1, index: idx, phone: item.phone });
+        //         }
+        //     }, WAIT_TIME);
+        // });
     } catch (e) {
         console.log("setIntervalPhone", e);
         await socket.send(SOCKET_LOG, { message: "loi " + e });

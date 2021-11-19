@@ -41,7 +41,7 @@ export default function homeReducer(state = initialState, action) {
         case GET_LIST_PHONE_SUCCESS:
             return {
                 ...state,
-                listPhone: action.value,
+                listPhone: [...action.value],
             }
         case GET_LIST_PHONE_FAIL:
             return {
@@ -69,7 +69,7 @@ export default function homeReducer(state = initialState, action) {
             console.log(" reducer delete phone ", action.data);
             return {
                 ...state,
-                phoneNumber: action.data,
+                phoneNumber: {...action.data},
             }
         case DELETE_PHONE_SUCCESS:
             console.log(" reducer after delete phone ", action.data)
@@ -83,7 +83,7 @@ export default function homeReducer(state = initialState, action) {
             console.log(" reducer edit phone ", action.data);
             return {
                 ...state,
-                phoneNumber: action.data,
+                phoneNumber: {...action.data},
             }
         case EDIT_PHONE_SUCCESS:
             console.log(" reducer after edit phone ", action.data.phone, " ", action.data.money);
@@ -99,7 +99,7 @@ export default function homeReducer(state = initialState, action) {
             console.log("reducer set interval listphone", action.data);
             return {
                 ...state,
-                listPhone: action.data,
+                // listPhone: action.data,
             }
         case SET_INTERVAL_PHONE_SUCCESS:
             let tempPhone = [...state.listPhone];

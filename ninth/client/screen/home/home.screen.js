@@ -43,6 +43,8 @@ export default function Home() {
 
     function closeModal() {
         setIsOpen(false);
+        // khoi tao interval - duy nhat 1 lan
+        dispatch({ type: SET_INTERVAL_PHONE, data: { waitTime: time, urlID: selectedURL } });
     }
 
     function selectURL(event) {
@@ -50,13 +52,13 @@ export default function Home() {
         setSelectedURL(event.target.value);
     }
 
-    function changeTime(event){
-        if(event.target.value > 8){
+    function changeTime(event) {
+        if (event.target.value > 8) {
             setTime(event.target.value);
-            dispatch({ type: SET_WAIT_TIME, waitTime: event.target.value * 1000 });
-        }else{
+            //dispatch({ type: SET_WAIT_TIME, waitTime: event.target.value * 1000 });
+        } else {
             setTime(8);
-            dispatch({ type: SET_WAIT_TIME, waitTime: 8 * 1000 });
+            //dispatch({ type: SET_WAIT_TIME, waitTime: 8 * 1000 });
         }
     }
 
@@ -69,14 +71,21 @@ export default function Home() {
     let warning = useSelector(state => state.home.warning);
     let notiPhone = useSelector(state => state.home.notiPhone);
 
+    //vừa vào home sẽ get data
     useEffect(() => {
         console.log("current list phone", listPhone);
         if (listPhone.length === 0) {
             dispatch({ type: GET_LIST_PHONE, data: null });
         }
-        // khoi tao interval - duy nhat 1 lan
-        dispatch({ type: SET_INTERVAL_PHONE });
     }, []);
+
+    useEffect(() => {
+        console.log("current list phone", listPhone);
+    }, [listPhone]);
+
+    useEffect(() => {
+        console.log("current noti phone", notiPhone);
+    }, [notiPhone]);
 
     let readFile = (e) => {
         readFileExcel(e.target.files[0], (data) => {
@@ -204,7 +213,7 @@ export default function Home() {
                 </div>
                 {
                     notiPhone && notiPhone.length > 0
-                     ?
+                        ?
                         <div className="div-noti-phone-parent">
                             <span id="span-noti-phone">Thay đổi mới nhất</span>
                             <div className="div-noti-phone">{
@@ -234,7 +243,8 @@ export default function Home() {
                 onRequestClose={closeModal}
                 style={customStyles}
                 contentLabel="Chọn crawl URL"
-                subtitle = ""
+                subtitle=""
+                shouldCloseOnOverlayClick={false}
                 ariaHideApp={false}
             >
                 <div className="modal-header">

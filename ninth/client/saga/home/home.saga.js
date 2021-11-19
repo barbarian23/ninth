@@ -207,7 +207,8 @@ const setIntervalPhoneSocket = function (data) {
     // });
     //cái cũ dùng socket
     return eventChannel(emitter => {
-        socket.send(SOCKET_SETINTERVAL_PHONE, { listPhone: data.data });
+        //socket.send(SOCKET_SETINTERVAL_PHONE, { listPhone: data.data });
+        socket.send(SOCKET_SETINTERVAL_PHONE, { waitTime: data.data.waitTime, urlID: data.data.urlID });
         socket.receive(SOCKET_SETINTERVALED_PHONE, function (data) {
             // console.log("delete home.saga from server", data);
             emitter(data || '');

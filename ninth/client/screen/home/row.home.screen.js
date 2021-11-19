@@ -19,9 +19,9 @@ export default function Row(props) {
     let sendTelegram = (data) => {
         requestPost(URL_BOT_TELEGRAM,
             {
-                chat_id: ID_CHANNEL_TELEGRAM,
+                chat_id:  ID_CHANNEL_TELEGRAM,
                 text: "Tài khoản chính của thuê bao " + data.phone + " là " + data.info + " (lớn hơn " + data.money + ")",
-            }, (res) => {
+            }, (res) => { 
                 console.log("send telegram successfully ", "Tài khoản chính của thuê bao " + data.phone + " là " + data.info + " (lớn hơn " + data.money + ")");
             },
             (err) => {
